@@ -1,6 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-
 # Git LFS rules: track common binary/large file types with Git LFS
 # To enable LFS for this repo, run: `git lfs install` and then add/commit these patterns.
 # See https://git-lfs.github.com/ for details.
