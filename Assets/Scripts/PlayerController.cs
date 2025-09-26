@@ -22,6 +22,17 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Sensitivity of the mouse for looking left and right.")]
     public float mouseSensitivity = 2.0f;
 
+    // --- Weapon & Attack Variables ---
+    [Header("Weapon Settings")]
+    [Tooltip("Arrastra aquí el Prefab del pico que funciona como arma.")]
+    public GameObject weaponPickaxePrefab;
+    [Tooltip("El punto en la cámara donde se instanciará el arma.")]
+    public Transform weaponHolder;
+    [Tooltip("How far the player can reach to attack.")]
+    public float attackDistance = 3f;
+    [Tooltip("How much damage the attack does.")]
+    public int attackDamage = 1;
+
     [Header("Dependencies")]
     [Tooltip("The transform of the main camera.")]
     public Transform cameraTransform;
@@ -33,6 +44,7 @@ public class PlayerController : MonoBehaviour
     private Vector3 playerVelocity;
     private bool isGrounded;
     private InputSystem_Actions playerControls;
+    private WeaponPickaxe currentWeapon;
 
     // Jump Buffering
     private float jumpBufferTime = 0.2f;
@@ -56,6 +68,7 @@ public class PlayerController : MonoBehaviour
         playerControls.Player.Look.performed += OnLookPerformed;
         playerControls.Player.Look.canceled += OnLookCanceled;
         playerControls.Player.Jump.performed += OnJumpPerformed;
+        playerControls.Player.Attack.performed += OnAttackPerformed; // Subscribe to the new Attack action
     }
 
     private void OnDisable()
@@ -65,6 +78,7 @@ public class PlayerController : MonoBehaviour
         playerControls.Player.Look.performed -= OnLookPerformed;
         playerControls.Player.Look.canceled -= OnLookCanceled;
         playerControls.Player.Jump.performed -= OnJumpPerformed;
+        playerControls.Player.Attack.performed -= OnAttackPerformed; // Unsubscribe from the Attack action
         playerControls.Player.Disable();
     }
 
@@ -80,6 +94,31 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // --- Public Methods ---
+    public void EquipWeapon()
+    {
+        if (currentWeapon != null)
+        {
+            Debug.Log("Ya hay un arma equipada.");
+            return;
+        }
+
+        if (weaponPickaxePrefab == null || weaponHolder == null)
+        {
+            Debug.LogError("Weapon Prefab o Weapon Holder no están asignados en el PlayerController.");
+            return;
+        }
+
+        Debug.Log("Equipando el arma.");
+        GameObject weaponInstance = Instantiate(weaponPickaxePrefab, weaponHolder);
+        currentWeapon = weaponInstance.GetComponent<WeaponPickaxe>();
+
+        if (currentWeapon == null)
+        {
+            Debug.LogError("El prefab del arma no tiene el script WeaponPickaxe.");
+        }
+    }
+
     // --- Input System Callbacks ---
     private void OnMovePerformed(InputAction.CallbackContext context) => moveInput = context.ReadValue<Vector2>();
     private void OnMoveCanceled(InputAction.CallbackContext context) => moveInput = Vector2.zero;
@@ -89,6 +128,11 @@ public class PlayerController : MonoBehaviour
     {
         jumpBufferCounter = jumpBufferTime;
     }
+    private void OnAttackPerformed(InputAction.CallbackContext context)
+    {
+        HandleAttack();
+    }
+
 
     // --- Handlers ---
     private void HandleRotation()
@@ -151,5 +195,45 @@ public class PlayerController : MonoBehaviour
 
         // Move the character
         characterController.Move(playerVelocity * Time.deltaTime);
+    }
+
+    private void HandleAttack()
+    {
+        if (currentWeapon == null)
+        {
+            // Este mensaje es normal si no tienes el pico equipado.
+            // Debug.Log("No hay arma equipada para atacar.");
+            return;
+        }
+
+        // Llama a la animación. Sabemos que esta parte funciona.
+        currentWeapon.PlayAttackAnimation();
+
+        // --- Diagnóstico de Raycast ---
+        RaycastHit hit;
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, attackDistance))
+        {
+            // El rayo ha golpeado algo. ¡Bien!
+            Debug.Log($"Raycast golpeó a: {hit.transform.name} en la capa {hit.transform.gameObject.layer}");
+
+            // Ahora, comprobemos si tiene el componente Destructible.
+            Destructible destructibleTarget = hit.transform.GetComponent<Destructible>();
+            if (destructibleTarget != null)
+            {
+                // ¡Éxito! Encontró el componente y debería hacer daño.
+                Debug.Log($"¡{hit.transform.name} es destruible! Haciendo daño.");
+                destructibleTarget.TakeDamage(attackDamage);
+            }
+            else
+            {
+                // El rayo golpeó algo, pero no tiene el script Destructible.
+                Debug.LogWarning($"{hit.transform.name} no tiene el componente 'Destructible'.");
+            }
+        }
+        else
+        {
+            // Si ves este mensaje, el rayo no está golpeando nada en su rango.
+            Debug.Log("El ataque no golpeó nada.");
+        }
     }
 }

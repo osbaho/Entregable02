@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 163553186511450913}
   m_Layer: 0
-  m_Name: CameraTarget
+  m_Name: WeaponHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24,13 +24,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6501113054669364992}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.6, z: 0}
+  m_LocalRotation: {x: 0, y: 0.38268343, z: 0, w: 0.92387956}
+  m_LocalPosition: {x: 0.5, y: -0.8, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1764002287712525332}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 45, z: 0}
 --- !u!1 &8104818262958586980
 GameObject:
   m_ObjectHideFlags: 0
@@ -161,6 +161,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveSpeed: 5
-  jumpForce: 5
+  jumpForce: 3
   gravity: -9.81
-  mouseSensitivity: 50
+  lowJumpMultiplier: 2
+  fallMultiplier: 8
+  mouseSensitivity: 15
+  weaponPickaxePrefab: {fileID: 3765041349834935466, guid: 2da690fe6f8a6284d9d0d26913936a03, type: 3}
+  weaponHolder: {fileID: 163553186511450913}
+  attackDistance: 3
+  attackDamage: 1
+  cameraTransform: {fileID: 0}
